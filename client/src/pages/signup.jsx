@@ -20,6 +20,20 @@ const Signup = () => {
 
   const validatePassword = (pass) =>
     /^(?=.*[A-Z])(?=.*\d).{6,}$/.test(pass);
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeToTerms: false,
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -32,6 +46,14 @@ const Signup = () => {
     }
 
     // Email
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    }
+
+    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
@@ -42,6 +64,11 @@ const Signup = () => {
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (!validatePassword(formData.password)) {
+    // Password validation
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordRegex.test(formData.password)) {
       newErrors.password =
         "Password must be 6+ chars with 1 uppercase & 1 number";
     }
@@ -56,6 +83,14 @@ const Signup = () => {
     // Terms
     if (!formData.termsAccepted) {
       newErrors.termsAccepted = "You must accept terms to continue";
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    // Terms validation
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = "You must agree to the terms";
     }
 
     setErrors(newErrors);
@@ -66,11 +101,14 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
     });
 
+    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
@@ -80,6 +118,12 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
 
     setIsLoading(true);
 
@@ -91,6 +135,16 @@ const Signup = () => {
       navigate("/login");
     } catch (err) {
       setErrors({ general: "Signup failed. Try again." });
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Mock successful signup
+      console.log("Signup successful:", formData);
+
+      // Navigate to login page
+      navigate("/login");
+    } catch (error) {
+      setErrors({ general: "Signup failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
